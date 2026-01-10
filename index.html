@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Super Admin - VIP Viral Hub</title>
+  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&family=Poppins:wght@600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    :root { --accent: #007AFF; --danger: #FF3B30; --success: #34C759; --bg: #F2F2F7; --card: #FFFFFF; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Hind Siliguri', sans-serif; background: var(--bg); color: #1c1c1e; }
+
+    #auth-overlay { position: fixed; inset: 0; background: #fff; z-index: 10000; display: flex; justify-content: center; align-items: center; text-align: center; }
+    .container { max-width: 1100px; margin: 20px auto; padding: 0 20px; display: none; }
+    
+    /* Navigation Tabs */
+    .tabs { display: flex; gap: 10px; margin-bottom: 25px; background: #fff; padding: 10px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+    .tab-btn { flex: 1; padding: 12px; border: none; border-radius: 10px; cursor: pointer; font-weight: 700; background: #f0f0f5; transition: 0.3s; }
+    .tab-btn.active { background: var(--accent); color: white; }
+
+    .content-section { display: none; animation: fadeIn 0.3s ease; }
+    .content-section.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    .card { background: var(--card); padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); margin-bottom: 25px; }
+    h2 { margin-bottom: 20px; font-size: 1.2rem; display: flex; align-items: center; gap: 10px; }
+
+    input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 12px; margin-bottom: 15px; outline: none; }
+    .btn { padding: 12px 20px; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; color: white; }
+    .btn-blue { background: var(--accent); }
+    .btn-green { background: var(--success); }
+    .btn-red { background: var(--danger); }
+
+    /* Tables & Lists */
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { text-align: left; padding: 15px; border-bottom: 1px solid #eee; }
+    .video-item { display: flex; align-items: center; gap: 15px; padding: 10px; border-bottom: 1px solid #f0f0f0; }
+    .video-item img { width: 50px; height: 35px; border-radius: 5px; object-fit: cover; }
+    
+    .status-badge { padding: 5px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; }
+    .pending { background: #FFF9E6; color: #FFCC00; }
+  </style>
+</head>
+<body>
+
+<div id="auth-overlay">
+  <div style="width: 90%; max-width: 350px;">
+    <h1>Admin Access</h1>
+    <input type="password" id="adminPass" placeholder="পাসওয়ার্ড (1234)">
+    <button class="btn btn-blue" style="width: 100%;" onclick="checkAuth()">Login</button>
+  </div>
+</div>
+
+<div class="container" id="admin-content">
+  <header style="display:flex; justify-content:space-between; margin-bottom:20px;">
+    <h1>Super Admin</h1>
+    <button class="btn btn-red" onclick="location.reload()">Logout</button>
+  </header>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="openTab(event, 'video-tab')">Videos</button>
+    <button class="tab-btn" onclick="openTab(event, 'payment-tab')">Payments</button>
+    <button class="tab-btn" onclick="openTab(event, 'settings-tab')">Settings</button>
+  </div>
+
+  <div id="video-tab" class="content-section active">
+    <div class="card">
+      <h2><i class="fas fa-plus"></i> Add Video</h2>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <input type="number" id="epNo" placeholder="Episode No">
+        <input type="text" id="epTitle" placeholder="Title">
+      </div>
+      <input type="text" id="epUrl" placeholder="Direct Video URL (.mp4)">
+      <input type="text" id="epThumb" placeholder="Thumbnail URL">
+      <button class="btn btn-blue" id="saveBtn">Upload Now</button>
+    </div>
+    <div class="card">
+      <h2><i class="fas fa-list"></i> Video List</h2>
+      <div id="videoList">Loading...</div>
+    </div>
+  </div>
+
+  <div id="payment-tab" class="content-section">
+    <div class="card">
+      <h2><i class="fas fa-wallet"></i> Pending Payment Requests</h2>
+      <table id="payTable">
+        <thead>
+          <tr>
+            <th>User Phone</th>
+            <th>TrxID</th>
+            <th>Plan</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="payList"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="settings-tab" class="content-section">
+    <div class="card">
+      <h2><i class="fas fa-cog"></i> Payment Numbers</h2>
+      <label>bKash Number</label>
+      <input type="text" id="setBkash" placeholder="017...">
+      <label>Nagad Number</label>
+      <input type="text" id="setNagad" placeholder="018...">
+      <label>Rocket Number</label>
+      <input type="text" id="setRocket" placeholder="019...">
+      <button class="btn btn-green" onclick="updateSettings()">Update Numbers</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyA0F0Rvpc-eYA5MruXsDMXZ7AEh7O5QU_E",
+    authDomain: "kids-viral-video.firebaseapp.com",
+    projectId: "kids-viral-video",
+    storageBucket: "kids-viral-video.firebasestorage.app",
+    messagingSenderId: "442674026404",
+    appId: "1:442674026404:web:39c0e59400047aa10e5331"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // Auth
+  window.checkAuth = () => {
+    if(document.getElementById('adminPass').value === "1234") {
+      document.getElementById('auth-overlay').style.display = 'none';
+      document.getElementById('admin-content').style.display = 'block';
+    } else { alert("Wrong Password!"); }
+  };
+
+  // Tab Switcher
+  window.openTab = (evt, tabName) => {
+    document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(tabName).classList.add('active');
+    evt.currentTarget.classList.add('active');
+  };
+
+  // 1. Video Management
+  document.getElementById('saveBtn').onclick = async () => {
+    const data = {
+      episodeNo: parseInt(document.getElementById('epNo').value),
+      title: document.getElementById('epTitle').value,
+      url: document.getElementById('epUrl').value,
+      thumb: document.getElementById('epThumb').value
+    };
+    await addDoc(collection(db, "videos"), data);
+    alert("Video Added!");
+  };
+
+  onSnapshot(query(collection(db, "videos"), orderBy("episodeNo", "desc")), (snap) => {
+    const list = document.getElementById('videoList');
+    list.innerHTML = "";
+    snap.forEach(vDoc => {
+      list.innerHTML += `
+        <div class="video-item">
+          <img src="${vDoc.data().thumb}">
+          <div style="flex:1"><b>#${vDoc.data().episodeNo} - ${vDoc.data().title}</b></div>
+          <button class="btn btn-red" onclick="deleteVideo('${vDoc.id}')"><i class="fas fa-trash"></i></button>
+        </div>`;
+    });
+  });
+
+  window.deleteVideo = async (id) => { if(confirm("Delete?")) await deleteDoc(doc(db, "videos", id)); };
+
+  // 2. Payment Management
+  onSnapshot(collection(db, "pending_payments"), (snap) => {
+    const list = document.getElementById('payList');
+    list.innerHTML = "";
+    snap.forEach(pDoc => {
+      const p = pDoc.data();
+      list.innerHTML += `
+        <tr>
+          <td>${p.phone}</td>
+          <td><b>${p.trx}</b></td>
+          <td>${p.plan || 'N/A'}</td>
+          <td>
+            <button class="btn btn-green" onclick="approvePay('${p.trx}', '${pDoc.id}')">Approve</button>
+            <button class="btn btn-red" onclick="deletePay('${pDoc.id}')">X</button>
+          </td>
+        </tr>`;
+    });
+  });
+
+  window.approvePay = async (trx, docId) => {
+    // Approved TrxID কে approved_users কালেকশনে পাঠাচ্ছে
+    await setDoc(doc(db, "approved_users", trx), { status: "active", date: new Date().toLocaleString() });
+    await deleteDoc(doc(db, "pending_payments", docId));
+    alert("User Approved!");
+  };
+
+  window.deletePay = async (id) => { await deleteDoc(doc(db, "pending_payments", id)); };
+
+  // 3. Settings Management
+  window.updateSettings = async () => {
+    const settings = {
+      bkash: document.getElementById('setBkash').value,
+      nagad: document.getElementById('setNagad').value,
+      rocket: document.getElementById('setRocket').value
+    };
+    await setDoc(doc(db, "settings", "payment_info"), settings);
+    alert("Numbers Updated!");
+  };
+
+  // Load Initial Settings
+  onSnapshot(doc(db, "settings", "payment_info"), (doc) => {
+    if(doc.exists()) {
+      const d = doc.data();
+      document.getElementById('setBkash').value = d.bkash || "";
+      document.getElementById('setNagad').value = d.nagad || "";
+      document.getElementById('setRocket').value = d.rocket || "";
+    }
+  });
+
+</script>
+</body>
+</html>
