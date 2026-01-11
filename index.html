@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
   <style>
-    :root { --accent: #007AFF; --danger: #FF3B30; --success: #34C759; --bg: #F2F2F7; --card: #FFFFFF; }
+    :root { --accent: #007AFF; --danger: #FF3B30; --success: #34C759; --bg: #F2F2F7; --card: #FFFFFF; --gold: #FFD700; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Hind Siliguri', sans-serif; background: var(--bg); color: #1c1c1e; }
 
@@ -26,16 +26,16 @@
     .card { background: var(--card); padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); margin-bottom: 25px; }
     h2 { margin-bottom: 20px; font-size: 1.2rem; display: flex; align-items: center; gap: 10px; }
 
-    /* Stats Box Style */
     .stats-container { display: grid; grid-template-columns: 1fr; gap: 15px; margin-bottom: 20px; }
     .stat-box { background: var(--accent); color: white; padding: 20px; border-radius: 15px; text-align: center; }
     .stat-box h3 { font-size: 2.5rem; margin: 5px 0; }
 
-    input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 12px; margin-bottom: 15px; outline: none; }
+    input, select, textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 12px; margin-bottom: 15px; outline: none; font-family: inherit; }
     .btn { padding: 12px 20px; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; color: white; }
     .btn-blue { background: var(--accent); }
     .btn-green { background: var(--success); }
     .btn-red { background: var(--danger); }
+    .btn-gold { background: #CCAC00; color: white; }
 
     table { width: 100%; border-collapse: collapse; margin-top: 10px; }
     th, td { text-align: left; padding: 15px; border-bottom: 1px solid #eee; }
@@ -107,6 +107,12 @@
   </div>
 
   <div id="settings-tab" class="content-section">
+    <div class="card" style="border-left: 5px solid var(--gold);">
+      <h2><i class="fas fa-bullhorn"></i> Website Notice</h2>
+      <textarea id="setNotice" rows="3" placeholder="সাইটের নোটিশ এখানে লিখুন... (খালি রাখলে নোটিশ বার দেখাবে না)"></textarea>
+      <button class="btn btn-gold" onclick="updateNotice()">Update Notice</button>
+    </div>
+
     <div class="card">
       <h2><i class="fas fa-cog"></i> Payment Numbers</h2>
       <label>bKash Number</label>
@@ -122,7 +128,7 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyA0F0Rvpc-eYA5MruXsDMXZ7AEh7O5QU_E",
@@ -136,14 +142,12 @@
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  // --- Visitor Count Logic ---
   onSnapshot(doc(db, "site_stats", "visitors"), (docSnap) => {
     if (docSnap.exists()) {
       document.getElementById('totalViewsDisplay').innerText = docSnap.data().totalViews || 0;
     }
   });
 
-  // Auth
   window.checkAuth = () => {
     if(document.getElementById('adminPass').value === "1234") {
       document.getElementById('auth-overlay').style.display = 'none';
@@ -151,7 +155,6 @@
     } else { alert("Wrong Password!"); }
   };
 
-  // Tab Switcher
   window.openTab = (evt, tabName) => {
     document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -213,7 +216,7 @@
 
   window.deletePay = async (id) => { await deleteDoc(doc(db, "pending_payments", id)); };
 
-  // 3. Settings Management
+  // 3. Settings Management (Numbers)
   window.updateSettings = async () => {
     const settings = {
       bkash: document.getElementById('setBkash').value,
@@ -222,6 +225,13 @@
     };
     await setDoc(doc(db, "settings", "payment_info"), settings);
     alert("Numbers Updated!");
+  };
+
+  // 4. Notice Management (নতুন যুক্ত করা হয়েছে)
+  window.updateNotice = async () => {
+    const notice = document.getElementById('setNotice').value;
+    await setDoc(doc(db, "settings", "notice_info"), { text: notice });
+    alert("Notice Updated!");
   };
 
   onSnapshot(doc(db, "settings", "payment_info"), (docSnap) => {
@@ -233,6 +243,13 @@
     }
   });
 
+  // নোটিশ ডাটা লোড করা
+  onSnapshot(doc(db, "settings", "notice_info"), (docSnap) => {
+    if(docSnap.exists()) {
+      document.getElementById('setNotice').value = docSnap.data().text || "";
+    }
+  });
+
 </script>
 </body>
-    </html>
+        </html>
