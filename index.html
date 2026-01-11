@@ -15,7 +15,6 @@
     #auth-overlay { position: fixed; inset: 0; background: #fff; z-index: 10000; display: flex; justify-content: center; align-items: center; text-align: center; }
     .container { max-width: 1100px; margin: 20px auto; padding: 0 20px; display: none; }
     
-    /* Navigation Tabs */
     .tabs { display: flex; gap: 10px; margin-bottom: 25px; background: #fff; padding: 10px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
     .tab-btn { flex: 1; padding: 12px; border: none; border-radius: 10px; cursor: pointer; font-weight: 700; background: #f0f0f5; transition: 0.3s; }
     .tab-btn.active { background: var(--accent); color: white; }
@@ -27,20 +26,21 @@
     .card { background: var(--card); padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); margin-bottom: 25px; }
     h2 { margin-bottom: 20px; font-size: 1.2rem; display: flex; align-items: center; gap: 10px; }
 
+    /* Stats Box Style */
+    .stats-container { display: grid; grid-template-columns: 1fr; gap: 15px; margin-bottom: 20px; }
+    .stat-box { background: var(--accent); color: white; padding: 20px; border-radius: 15px; text-align: center; }
+    .stat-box h3 { font-size: 2.5rem; margin: 5px 0; }
+
     input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 12px; margin-bottom: 15px; outline: none; }
     .btn { padding: 12px 20px; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; color: white; }
     .btn-blue { background: var(--accent); }
     .btn-green { background: var(--success); }
     .btn-red { background: var(--danger); }
 
-    /* Tables & Lists */
     table { width: 100%; border-collapse: collapse; margin-top: 10px; }
     th, td { text-align: left; padding: 15px; border-bottom: 1px solid #eee; }
     .video-item { display: flex; align-items: center; gap: 15px; padding: 10px; border-bottom: 1px solid #f0f0f0; }
     .video-item img { width: 50px; height: 35px; border-radius: 5px; object-fit: cover; }
-    
-    .status-badge { padding: 5px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; }
-    .pending { background: #FFF9E6; color: #FFCC00; }
   </style>
 </head>
 <body>
@@ -58,6 +58,13 @@
     <h1>Super Admin</h1>
     <button class="btn btn-red" onclick="location.reload()">Logout</button>
   </header>
+
+  <div class="stats-container">
+    <div class="stat-box">
+      <p><i class="fas fa-users"></i> মোট ভিজিটর (Total Views)</p>
+      <h3 id="totalViewsDisplay">0</h3>
+    </div>
+  </div>
 
   <div class="tabs">
     <button class="tab-btn active" onclick="openTab(event, 'video-tab')">Videos</button>
@@ -129,6 +136,13 @@
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
+  // --- Visitor Count Logic ---
+  onSnapshot(doc(db, "site_stats", "visitors"), (docSnap) => {
+    if (docSnap.exists()) {
+      document.getElementById('totalViewsDisplay').innerText = docSnap.data().totalViews || 0;
+    }
+  });
+
   // Auth
   window.checkAuth = () => {
     if(document.getElementById('adminPass').value === "1234") {
@@ -192,7 +206,6 @@
   });
 
   window.approvePay = async (trx, docId) => {
-    // Approved TrxID কে approved_users কালেকশনে পাঠাচ্ছে
     await setDoc(doc(db, "approved_users", trx), { status: "active", date: new Date().toLocaleString() });
     await deleteDoc(doc(db, "pending_payments", docId));
     alert("User Approved!");
@@ -211,10 +224,9 @@
     alert("Numbers Updated!");
   };
 
-  // Load Initial Settings
-  onSnapshot(doc(db, "settings", "payment_info"), (doc) => {
-    if(doc.exists()) {
-      const d = doc.data();
+  onSnapshot(doc(db, "settings", "payment_info"), (docSnap) => {
+    if(docSnap.exists()) {
+      const d = docSnap.data();
       document.getElementById('setBkash').value = d.bkash || "";
       document.getElementById('setNagad').value = d.nagad || "";
       document.getElementById('setRocket').value = d.rocket || "";
@@ -223,4 +235,4 @@
 
 </script>
 </body>
-</html>
+    </html>
